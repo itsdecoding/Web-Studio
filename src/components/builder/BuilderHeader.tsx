@@ -22,7 +22,9 @@ interface BuilderHeaderProps {
   onDeviceChange: (device: 'mobile' | 'tablet' | 'desktop') => void;
   onSaveDraft: () => void;
   onPublishLive: () => void;
+  onAiAutoDraft?: () => void;
   isSaving?: boolean;
+  isAiDrafting?: boolean;
 }
 
 export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
@@ -33,7 +35,9 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
   onDeviceChange,
   onSaveDraft,
   onPublishLive,
+  onAiAutoDraft,
   isSaving,
+  isAiDrafting,
 }) => {
   const [editingSlug, setEditingSlug] = useState(false);
   const [tempSlug, setTempSlug] = useState(slug);
@@ -157,6 +161,18 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {onAiAutoDraft && (
+          <button
+            onClick={onAiAutoDraft}
+            disabled={isAiDrafting}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-500/40 bg-orange-500/10 text-xs font-bold text-orange-400 hover:bg-orange-500/20 transition-all disabled:opacity-50"
+            title="Auto-write bespoke $1,000 copy with Gemini AI"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{isAiDrafting ? 'AI Drafting...' : 'AI Auto-Draft'}</span>
+          </button>
+        )}
+
         <button
           onClick={onSaveDraft}
           disabled={isSaving}

@@ -58,7 +58,44 @@ function BuilderWorkspace() {
   const [project, setProject] = useState<WebsiteProject>(DEFAULT_PROJECT);
   const [device, setDevice] = useState<'mobile' | 'tablet' | 'desktop'>('mobile');
   const [isSaving, setIsSaving] = useState(false);
+  const [isAiDrafting, setIsAiDrafting] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
+
+  // Handle Gemini AI 1-Click Auto-Draft
+  const handleAiAutoDraft = async () => {
+    setIsAiDrafting(true);
+    try {
+      const res = await fetch('/api/studio/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'draft',
+          businessName: project.businessName || 'Elite Local Practice',
+          niche: project.niche || 'dental',
+          city: project.city || 'Pune',
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success && json.data) {
+        const ai = json.data;
+        setProject((prev) => ({
+          ...prev,
+          headlineLine1: ai.headlineLine1,
+          headlineLine2: ai.headlineLine2,
+          subheadline: ai.subheadline,
+          services: ai.services,
+          doctorOrOwnerName: ai.doctorOrOwnerName,
+          doctorOrOwnerTitle: ai.doctorOrOwnerTitle,
+          templateId: ai.recommendedTemplateId || prev.templateId,
+        }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsAiDrafting(false);
+    }
+  };
 
   // Initialize from search params or localStorage
   useEffect(() => {
@@ -135,7 +172,9 @@ function BuilderWorkspace() {
         onDeviceChange={setDevice}
         onSaveDraft={handleSaveDraft}
         onPublishLive={() => setPublishModalOpen(true)}
+        onAiAutoDraft={handleAiAutoDraft}
         isSaving={isSaving}
+        isAiDrafting={isAiDrafting}
       />
 
       {/* Split-Screen Studio Workspace */}
