@@ -99,16 +99,35 @@ function BuilderWorkspace() {
 
   // Initialize from search params or localStorage
   useEffect(() => {
+    const slugParam = searchParams.get('slug');
     const bizParam = searchParams.get('biz');
     const nicheParam = searchParams.get('niche');
-    const slugParam = searchParams.get('slug');
+    const autoDraftParam = searchParams.get('autodraft');
 
-    if (bizParam || nicheParam || slugParam) {
+    if (slugParam) {
+      // Fetch saved project from Supabase
+      fetch(`/api/studio/projects?slug=${encodeURIComponent(slugParam)}`)
+        .then((r) => r.json())
+        .then((json) => {
+          if (json.success && json.project) {
+            setProject(json.project);
+          } else if (bizParam || nicheParam) {
+            setProject((prev) => ({
+              ...prev,
+              businessName: bizParam || prev.businessName,
+              niche: nicheParam || prev.niche,
+              slug: slugParam,
+              headlineLine1: bizParam ? bizParam.toUpperCase() : prev.headlineLine1,
+            }));
+          }
+        })
+        .catch(() => {});
+    } else if (bizParam || nicheParam) {
       setProject((prev) => ({
         ...prev,
         businessName: bizParam || prev.businessName,
         niche: nicheParam || prev.niche,
-        slug: slugParam || prev.slug,
+        slug: (bizParam || 'website').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
         headlineLine1: bizParam ? bizParam.toUpperCase() : prev.headlineLine1,
       }));
     } else {
@@ -161,6 +180,25 @@ function BuilderWorkspace() {
     }
   };
 
+  // Publish Live to Supabase
+  const handlePublishLive = async () => {
+    setIsSaving(true);
+    try {
+      await fetch('/api/studio/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project),
+      });
+      // Also cache locally
+      localStorage.setItem('pinsite_studio_active_project', JSON.stringify(project));
+    } catch {
+      // ignore
+    } finally {
+      setIsSaving(false);
+      setPublishModalOpen(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#07080A] text-slate-100 flex flex-col overflow-hidden">
       {/* Top Header */}
@@ -171,7 +209,7 @@ function BuilderWorkspace() {
         device={device}
         onDeviceChange={setDevice}
         onSaveDraft={handleSaveDraft}
-        onPublishLive={() => setPublishModalOpen(true)}
+        onPublishLive={handlePublishLive}
         onAiAutoDraft={handleAiAutoDraft}
         isSaving={isSaving}
         isAiDrafting={isAiDrafting}
