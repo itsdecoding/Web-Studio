@@ -100,7 +100,10 @@ export async function getProjectBySlug(slug: string): Promise<WebsiteProject | n
   }
 }
 
-export async function saveProject(project: WebsiteProject): Promise<{ success: boolean; id?: string; error?: string }> {
+export async function saveProject(
+  project: WebsiteProject,
+  explicitLeadId?: string
+): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
     const admin = getAdminClient();
     const slug = (project.slug || project.businessName)
@@ -137,10 +140,54 @@ export async function saveProject(project: WebsiteProject): Promise<{ success: b
       },
     };
 
+    // Ensure we have a valid lead_id for the database relation
+    let leadId = explicitLeadId;
+    if (!leadId) {
+      const { data: existingLead } = await admin
+        .from('leads')
+        .select('id')
+        .ilike('name', project.businessName)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingLead?.id) {
+        leadId = existingLead.id;
+      } else {
+        const phone = project.phone || '+91 98765 43210';
+        const normPhone = phone.replace(/[^0-9+]/g, '') || '+919876543210';
+        const { data: newLead, error: createLeadError } = await admin
+          .from('leads')
+          .insert({
+            name: project.businessName,
+            phone,
+            normalized_phone: normPhone,
+            niche: project.niche || 'dental',
+            area: project.city || 'Pune',
+            address: project.address || `${project.city || 'Pune'}, India`,
+            score: 85,
+            status: 'unassigned',
+          })
+          .select('id')
+          .single();
+
+        if (createLeadError || !newLead) {
+          console.warn('[Studio DB] Lead auto-create warning, fallback to anchor:', createLeadError);
+          const { data: fallbackLead } = await admin
+            .from('leads')
+            .select('id')
+            .limit(1)
+            .single();
+          leadId = fallbackLead?.id;
+        } else {
+          leadId = newLead.id;
+        }
+      }
+    }
+
     // Check if slug already exists to update or insert
     const { data: existing } = await admin
       .from('website_previews')
-      .select('id')
+      .select('id, lead_id')
       .eq('slug', slug)
       .maybeSingle();
 
@@ -150,17 +197,28 @@ export async function saveProject(project: WebsiteProject): Promise<{ success: b
         .update({
           theme: project.templateId || 'tactile-sheet',
           site_data: siteData,
+          lead_id: leadId || existing.lead_id,
         })
         .eq('id', existing.id);
 
       if (updateError) {
         return { success: false, error: updateError.message };
       }
+
+      if (leadId) {
+        await admin.from('leads').update({ active_preview_slug: slug }).eq('id', leadId);
+      }
+
       return { success: true, id: existing.id };
     } else {
+      if (!leadId) {
+        return { success: false, error: 'Cannot create website preview without associated lead_id' };
+      }
+
       const { data: inserted, error: insertError } = await admin
         .from('website_previews')
         .insert({
+          lead_id: leadId,
           slug,
           theme: project.templateId || 'tactile-sheet',
           font_pairing: 'instrument',
@@ -173,6 +231,9 @@ export async function saveProject(project: WebsiteProject): Promise<{ success: b
       if (insertError) {
         return { success: false, error: insertError.message };
       }
+
+      await admin.from('leads').update({ active_preview_slug: slug }).eq('id', leadId);
+
       return { success: true, id: inserted?.id };
     }
   } catch (err: any) {
