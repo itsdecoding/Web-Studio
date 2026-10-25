@@ -123,6 +123,7 @@ export interface WebsiteProject {
   customImages?: Partial<Record<StudioImageSlot, string>>;
   primaryColorOverride?: string;
   slug?: string;
+  blocks?: any[];
 }
 
 export interface CompileHtmlResult {
