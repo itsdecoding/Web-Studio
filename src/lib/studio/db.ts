@@ -93,6 +93,7 @@ export async function getProjectBySlug(slug: string): Promise<WebsiteProject | n
       reviewCount: siteData.reviewCount || 120,
       services: siteData.services || [],
       customImages: siteData.customImages || {},
+      blocks: siteData.blocks || undefined,
     };
   } catch (err) {
     console.error('[Studio DB] Get project exception:', err);
@@ -132,6 +133,7 @@ export async function saveProject(
       subtext: project.subheadline,
       services: project.services,
       customImages: project.customImages,
+      blocks: project.blocks,
       themeId: project.templateId,
       rating: project.rating || 4.9,
       reviewCount: project.reviewCount || 120,
@@ -140,49 +142,10 @@ export async function saveProject(
       },
     };
 
-    // Ensure we have a valid lead_id for the database relation
-    let leadId = explicitLeadId;
-    if (!leadId) {
-      const { data: existingLead } = await admin
-        .from('leads')
-        .select('id')
-        .ilike('name', project.businessName)
-        .limit(1)
-        .maybeSingle();
-
-      if (existingLead?.id) {
-        leadId = existingLead.id;
-      } else {
-        const phone = project.phone || '+91 98765 43210';
-        const normPhone = phone.replace(/[^0-9+]/g, '') || '+919876543210';
-        const { data: newLead, error: createLeadError } = await admin
-          .from('leads')
-          .insert({
-            name: project.businessName,
-            phone,
-            normalized_phone: normPhone,
-            niche: project.niche || 'dental',
-            area: project.city || 'Pune',
-            address: project.address || `${project.city || 'Pune'}, India`,
-            score: 85,
-            status: 'unassigned',
-          })
-          .select('id')
-          .single();
-
-        if (createLeadError || !newLead) {
-          console.warn('[Studio DB] Lead auto-create warning, fallback to anchor:', createLeadError);
-          const { data: fallbackLead } = await admin
-            .from('leads')
-            .select('id')
-            .limit(1)
-            .single();
-          leadId = fallbackLead?.id;
-        } else {
-          leadId = newLead.id;
-        }
-      }
-    }
+    // Clean Database Decoupling:
+    // If an explicit leadId is provided (e.g. from Agency OS cold calling), associate it.
+    // If not, default to null so Web Studio does NOT pollute the leads cold calling pool.
+    let leadId: string | null = explicitLeadId || null;
 
     // Check if slug already exists to update or insert
     const { data: existing } = await admin
@@ -192,13 +155,17 @@ export async function saveProject(
       .maybeSingle();
 
     if (existing?.id) {
+      const updatePayload: any = {
+        theme: project.templateId || 'tactile-sheet',
+        site_data: siteData,
+      };
+      if (leadId) {
+        updatePayload.lead_id = leadId;
+      }
+
       const { error: updateError } = await admin
         .from('website_previews')
-        .update({
-          theme: project.templateId || 'tactile-sheet',
-          site_data: siteData,
-          lead_id: leadId || existing.lead_id,
-        })
+        .update(updatePayload)
         .eq('id', existing.id);
 
       if (updateError) {
@@ -211,30 +178,77 @@ export async function saveProject(
 
       return { success: true, id: existing.id };
     } else {
-      if (!leadId) {
-        return { success: false, error: 'Cannot create website preview without associated lead_id' };
-      }
+      // First attempt: insert with lead_id (null for standalone studio projects)
+      const insertPayload: any = {
+        slug,
+        theme: project.templateId || 'tactile-sheet',
+        font_pairing: 'instrument',
+        site_data: siteData,
+        view_count: 0,
+        lead_id: leadId,
+      };
 
-      const { data: inserted, error: insertError } = await admin
+      let { data: inserted, error: insertError } = await admin
         .from('website_previews')
-        .insert({
-          lead_id: leadId,
-          slug,
-          theme: project.templateId || 'tactile-sheet',
-          font_pairing: 'instrument',
-          site_data: siteData,
-          view_count: 0,
-        })
+        .insert(insertPayload)
         .select('id')
         .single();
 
-      if (insertError) {
-        return { success: false, error: insertError.message };
+      // Graceful fallback if database schema still has NOT NULL constraint on lead_id:
+      // Attach to a single dedicated system anchor lead with status 'closed_won'
+      // CRITICAL: NEVER create an 'unassigned' lead, preserving the Agency OS cold caller pool 100% PRISTINE!
+      if (insertError && (insertError.code === '23502' || insertError.message?.includes('not-null'))) {
+        let anchorId: string | null = null;
+        const { data: existingAnchor } = await admin
+          .from('leads')
+          .select('id')
+          .eq('name', 'Pinsite Web Studio Workspace')
+          .maybeSingle();
+
+        if (existingAnchor?.id) {
+          anchorId = existingAnchor.id;
+        } else {
+          const { data: newAnchor } = await admin
+            .from('leads')
+            .insert({
+              name: 'Pinsite Web Studio Workspace',
+              phone: '+1 000 000 0000',
+              normalized_phone: '+10000000000',
+              niche: 'system',
+              area: 'Studio',
+              address: 'Pinsite Studio System Anchor',
+              score: 0,
+              status: 'closed_won', // Won/Closed leads are never assigned to dialer pool
+            })
+            .select('id')
+            .single();
+          anchorId = newAnchor?.id || null;
+        }
+
+        if (anchorId) {
+          const retry = await admin
+            .from('website_previews')
+            .insert({
+              ...insertPayload,
+              lead_id: anchorId,
+            })
+            .select('id')
+            .single();
+
+          inserted = retry.data;
+          insertError = retry.error;
+        }
       }
 
-      await admin.from('leads').update({ active_preview_slug: slug }).eq('id', leadId);
+      if (insertError || !inserted) {
+        return { success: false, error: insertError?.message || 'Failed to insert website preview' };
+      }
 
-      return { success: true, id: inserted?.id };
+      if (leadId) {
+        await admin.from('leads').update({ active_preview_slug: slug }).eq('id', leadId);
+      }
+
+      return { success: true, id: inserted.id };
     }
   } catch (err: any) {
     console.error('[Studio DB] Save project exception:', err);

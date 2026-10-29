@@ -9,6 +9,7 @@ import { generateAiWebsite, AiGeneratedSite } from './ai';
 import { resolveVaultNiche } from './vault';
 import { generateUniqueStudioSlug } from './slug';
 import { saveProject } from './db';
+import { generateDefaultBlocks } from './blocks/engine';
 
 export interface GenerateSiteParams {
   businessName: string;
@@ -121,6 +122,9 @@ export async function generateWebsiteSite(params: GenerateSiteParams): Promise<G
       tilt_2: params.customImages?.tilt_2 || vault.tilts[1],
     },
   };
+
+  // Generate full modular block list tailored to the industry archetype
+  project.blocks = generateDefaultBlocks(project, vault);
 
   // 5. Save to Supabase website_previews
   const saveResult = await saveProject(project);
