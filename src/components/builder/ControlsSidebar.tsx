@@ -22,14 +22,16 @@ import {
   Sparkles,
   RefreshCw,
   Zap,
+  Layers,
 } from 'lucide-react';
+import { BlockListControls } from './BlockListControls';
 
 interface ControlsSidebarProps {
   project: WebsiteProject;
   onChange: (updated: Partial<WebsiteProject>) => void;
 }
 
-export type SidebarTab = 'templates' | 'content' | 'media' | 'styles';
+export type SidebarTab = 'templates' | 'blocks' | 'content' | 'media' | 'styles';
 
 const COLOR_PRESETS = [
   { name: 'Clinical Teal', hex: '#0F766E' },
@@ -229,53 +231,65 @@ export const ControlsSidebar: React.FC<ControlsSidebarProps> = ({
   return (
     <aside className="w-full lg:w-[420px] h-[calc(100vh-56px)] border-r border-[#1E222A] bg-[#0E1015] flex flex-col shrink-0 select-none">
       {/* Tab Navigation Header */}
-      <div className="grid grid-cols-4 border-b border-[#1E222A] bg-[#0A0C0F] text-xs font-semibold text-slate-400 p-1.5 gap-1">
+      <div className="grid grid-cols-5 border-b border-[#1E222A] bg-[#0A0C0F] text-xs font-semibold text-slate-400 p-1.5 gap-1">
         <button
           onClick={() => setActiveTab('templates')}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${
+          className={`flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
             activeTab === 'templates'
               ? 'bg-[#181B20] text-orange-400 shadow-sm font-bold'
               : 'hover:text-slate-200 hover:bg-[#121418]'
           }`}
         >
           <LayoutTemplate className="w-3.5 h-3.5" />
-          <span>Styles</span>
+          <span className="truncate">Styles</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('blocks')}
+          className={`flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
+            activeTab === 'blocks'
+              ? 'bg-[#181B20] text-orange-400 shadow-sm font-bold'
+              : 'hover:text-slate-200 hover:bg-[#121418]'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span className="truncate">Blocks</span>
         </button>
 
         <button
           onClick={() => setActiveTab('content')}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${
+          className={`flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
             activeTab === 'content'
               ? 'bg-[#181B20] text-orange-400 shadow-sm font-bold'
               : 'hover:text-slate-200 hover:bg-[#121418]'
           }`}
         >
           <Type className="w-3.5 h-3.5" />
-          <span>Copy & AI</span>
+          <span className="truncate">Copy</span>
         </button>
 
         <button
           onClick={() => setActiveTab('media')}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${
+          className={`flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
             activeTab === 'media'
               ? 'bg-[#181B20] text-orange-400 shadow-sm font-bold'
               : 'hover:text-slate-200 hover:bg-[#121418]'
           }`}
         >
           <ImageIcon className="w-3.5 h-3.5" />
-          <span>Photos</span>
+          <span className="truncate">Photos</span>
         </button>
 
         <button
           onClick={() => setActiveTab('styles')}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors ${
+          className={`flex items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
             activeTab === 'styles'
               ? 'bg-[#181B20] text-orange-400 shadow-sm font-bold'
               : 'hover:text-slate-200 hover:bg-[#121418]'
           }`}
         >
           <Palette className="w-3.5 h-3.5" />
-          <span>Color</span>
+          <span className="truncate">Color</span>
         </button>
       </div>
 
@@ -334,7 +348,12 @@ export const ControlsSidebar: React.FC<ControlsSidebarProps> = ({
           </div>
         )}
 
-        {/* ----------------- TAB 2: CONTENT & GEMINI AI ----------------- */}
+        {/* ----------------- TAB 2: MODULAR BLOCKS ----------------- */}
+        {activeTab === 'blocks' && (
+          <BlockListControls project={project} onChange={onChange} />
+        )}
+
+        {/* ----------------- TAB 3: CONTENT & GEMINI AI ----------------- */}
         {activeTab === 'content' && (
           <div className="space-y-5">
             {/* Gemini AI Auto-Draft Card */}
