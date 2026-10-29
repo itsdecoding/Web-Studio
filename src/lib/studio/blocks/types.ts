@@ -9,6 +9,7 @@ export type BlockType =
   | 'top-bar'
   | 'nav'
   | 'hero'
+  | 'track-record'
   | 'philosophy-tilts'
   | 'before-after'
   | 'services-rail'
@@ -49,6 +50,18 @@ export interface HeroBlock extends BaseBlock {
   whatsappNumber: string;
   primaryCtaText?: string;
   secondaryCtaText?: string;
+}
+
+export interface TrackRecordStat {
+  value: string;
+  label: string;
+  sublabel?: string;
+}
+
+export interface TrackRecordBlock extends BaseBlock {
+  type: 'track-record';
+  headline?: string;
+  stats: TrackRecordStat[];
 }
 
 export interface PhilosophyTiltsBlock extends BaseBlock {
@@ -145,6 +158,7 @@ export type WebsiteBlock =
   | TopBarBlock
   | NavBlock
   | HeroBlock
+  | TrackRecordBlock
   | PhilosophyTiltsBlock
   | BeforeAfterBlock
   | ServicesRailBlock

@@ -276,6 +276,53 @@ export function generateMasterStyles(theme: BlockThemeTokens): string {
       cursor: pointer;
     }
 
+    /* ---------- Track Record & Authority Stats ---------- */
+    .track-record-section {
+      padding: 30px 0 20px;
+    }
+    .track-record-head {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .track-record-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .stat-pill-card {
+      background: var(--paper);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: var(--r-card);
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s;
+    }
+    .stat-pill-card:hover { transform: translateY(-2px); }
+    .stat-huge-number {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .stat-main-label {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .stat-sub-label {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
     /* ---------- Signature Dual Tilt Philosophy Section ---------- */
     .philosophy {
       padding: 60px 0 50px;
