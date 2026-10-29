@@ -1,6 +1,6 @@
 /**
  * Pinsite Web Studio: Master Modular Block Engine
- * Phase 5.1: Composable Section Block Architecture
+ * Phase 5.2: Composable Section Block Architecture with High-Ticket Conversion Arsenal
  */
 
 import { WebsiteProject, TemplateDefinition, CompileHtmlResult } from '../types';
@@ -13,20 +13,24 @@ import {
   NavBlock,
   HeroBlock,
   PhilosophyTiltsBlock,
+  BeforeAfterBlock,
   ServicesRailBlock,
   TrustPillarsBlock,
   FounderSpotlightBlock,
   GoogleReviewsBlock,
+  BookingIntakeBlock,
   StickyCallbarBlock,
 } from './types';
 import { renderTopBarBlock } from './topbar';
 import { renderNavBlock } from './nav';
 import { renderHeroBlock } from './hero';
 import { renderPhilosophyTiltsBlock } from './tilts';
+import { renderBeforeAfterBlock } from './beforeAfter';
 import { renderServicesRailBlock } from './services';
 import { renderTrustPillarsBlock } from './pillars';
 import { renderFounderSpotlightBlock } from './founder';
 import { renderGoogleReviewsBlock } from './reviews';
+import { renderBookingIntakeBlock } from './booking';
 import { renderStickyCallbarBlock } from './callbar';
 import { generateMasterStyles } from './css';
 import { escapeHtml } from './utils';
@@ -45,6 +49,8 @@ export function renderBlock(block: WebsiteBlock, context: BlockRenderContext): s
       return renderHeroBlock(block as HeroBlock, context);
     case 'philosophy-tilts':
       return renderPhilosophyTiltsBlock(block as PhilosophyTiltsBlock, context);
+    case 'before-after':
+      return renderBeforeAfterBlock(block as BeforeAfterBlock, context);
     case 'services-rail':
       return renderServicesRailBlock(block as ServicesRailBlock, context);
     case 'trust-pillars':
@@ -53,6 +59,8 @@ export function renderBlock(block: WebsiteBlock, context: BlockRenderContext): s
       return renderFounderSpotlightBlock(block as FounderSpotlightBlock, context);
     case 'google-reviews':
       return renderGoogleReviewsBlock(block as GoogleReviewsBlock, context);
+    case 'booking-intake':
+      return renderBookingIntakeBlock(block as BookingIntakeBlock, context);
     case 'sticky-callbar':
       return renderStickyCallbarBlock(block as StickyCallbarBlock, context);
     default:
@@ -72,6 +80,22 @@ export function generateDefaultBlocks(project: WebsiteProject, vault: NicheVault
   const tilt1Img = project.customImages?.tilt_1 || vault.tilts[0];
   const tilt2Img = project.customImages?.tilt_2 || vault.tilts[1];
   const founderImg = project.customImages?.founder || vault.founder;
+
+  // Before & After Imagery selection based on niche
+  const isRoofing = (project.niche || '').toLowerCase().includes('roof');
+  const isAuto = (project.niche || '').toLowerCase().includes('auto');
+
+  const beforeImg = isRoofing
+    ? 'https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1200&q=80'
+    : isAuto
+    ? 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=1200&q=80'
+    : 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1200&q=80';
+
+  const afterImg = isRoofing
+    ? 'https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&w=1200&q=80'
+    : isAuto
+    ? 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80'
+    : 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?auto=format&fit=crop&w=1200&q=80';
 
   // Services
   const services =
@@ -111,7 +135,7 @@ export function generateDefaultBlocks(project: WebsiteProject, vault: NicheVault
       id: 'block-hero',
       type: 'hero',
       enabled: true,
-      badgeText: 'Bespoke Clinical Concept',
+      badgeText: isRoofing ? 'Storm & Hail Certified' : 'Bespoke Clinical Concept',
       headlineLine1: project.headlineLine1 || bizName.toUpperCase(),
       headlineLine2: project.headlineLine2 || (project.niche ? project.niche.toUpperCase() : 'PREMIER CLINICAL CARE'),
       subheadline:
@@ -127,54 +151,101 @@ export function generateDefaultBlocks(project: WebsiteProject, vault: NicheVault
       id: 'block-philosophy',
       type: 'philosophy-tilts',
       enabled: true,
-      tagText: 'OUR CLINICAL STANDARD',
-      statementHtml:
-        'Microscopic precision, transparent pricing, and <em>patient-first care</em> tailored to every procedure.',
+      tagText: isRoofing ? 'OUR WORKMANSHIP STANDARD' : 'OUR CLINICAL STANDARD',
+      statementHtml: isRoofing
+        ? 'Impact-rated architectural systems, Class 4 hail defense, and <em>lifetime craftsmanship guarantees</em>.'
+        : 'Microscopic precision, transparent pricing, and <em>patient-first care</em> tailored to every procedure.',
       tilt1ImageUrl: tilt1Img,
       tilt2ImageUrl: tilt2Img,
+    },
+    {
+      id: 'block-before-after',
+      type: 'before-after',
+      enabled: true,
+      tagText: isRoofing ? 'REAL ROOF RESTORATION CASE' : 'CLINICAL TRANSFORMATION',
+      heading: isRoofing
+        ? 'Inspect Storm Damage vs. <em>Architectural Renewal</em>'
+        : 'Clinical Case: <em>Microscopic Enamel Precision</em>',
+      subheading:
+        'Drag the interactive slider to inspect restorative craftsmanship, seam alignment, and natural finish.',
+      beforeImage: beforeImg,
+      afterImage: afterImg,
+      beforeLabel: 'BEFORE',
+      afterLabel: 'AFTER',
+      caseDescription: isRoofing
+        ? 'Class 4 Impact Resistance • Heavy-Gauge Valley Flashing • 50-Year Non-Prorated Warranty'
+        : 'Single-Sitting Ceramic Restoration • CAD/CAM Precision Margins • Zero Enamel Damage',
+      ctaText: '📅 Request 3D Evaluation & Quote',
     },
     {
       id: 'block-services',
       type: 'services-rail',
       enabled: true,
-      sectionTag: 'SPECIALIZED TREATMENTS',
-      sectionTitle: 'Comprehensive <em>Clinical Care</em>',
+      sectionTag: isRoofing ? 'ENGINEERED SYSTEMS' : 'SPECIALIZED TREATMENTS',
+      sectionTitle: isRoofing
+        ? 'Precision <em>Contractor Solutions</em>'
+        : 'Comprehensive <em>Clinical Care</em>',
       services,
     },
     {
       id: 'block-pillars',
       type: 'trust-pillars',
       enabled: true,
-      pillars: [
-        {
-          number: '01',
-          title: 'Hospital-Grade Sterilization',
-          description: 'Class B multi-stage autoclave sterilization protocols for 100% patient safety.',
-        },
-        {
-          number: '02',
-          title: 'Microscope-Guided Precision',
-          description: 'Magnified clinical fields ensure microscopic accuracy and minimal discomfort.',
-        },
-        {
-          number: '03',
-          title: 'Zero-Wait Scheduling',
-          description: 'Strictly timed appointments so you never spend hours waiting in reception.',
-        },
-        {
-          number: '04',
-          title: 'Transparent Treatment Plans',
-          description: 'Complete upfront estimates with zero surprise fees or unneeded procedures.',
-        },
-      ],
+      pillars: isRoofing
+        ? [
+            {
+              number: '01',
+              title: 'Class 4 Impact Certified',
+              description: 'Engineered to withstand 2-inch hail strikes without shingle rupture or substrate damage.',
+            },
+            {
+              number: '02',
+              title: 'Zero-Mess Cleanup Guarantee',
+              description: 'Magnetic nail sweep and full landscape protection protocols around your property perimeter.',
+            },
+            {
+              number: '03',
+              title: 'Direct Insurance Mediation',
+              description: 'Itemized Xactimate estimates prepared directly for rapid adjuster sign-off with zero hassle.',
+            },
+            {
+              number: '04',
+              title: '50-Year Non-Prorated Warranty',
+              description: 'Complete manufacturer-backed labor and material guarantees for total peace of mind.',
+            },
+          ]
+        : [
+            {
+              number: '01',
+              title: 'Hospital-Grade Sterilization',
+              description: 'Class B multi-stage autoclave sterilization protocols for 100% patient safety.',
+            },
+            {
+              number: '02',
+              title: 'Microscope-Guided Precision',
+              description: 'Magnified clinical fields ensure microscopic accuracy and minimal discomfort.',
+            },
+            {
+              number: '03',
+              title: 'Zero-Wait Scheduling',
+              description: 'Strictly timed appointments so you never spend hours waiting in reception.',
+            },
+            {
+              number: '04',
+              title: 'Transparent Treatment Plans',
+              description: 'Complete upfront estimates with zero surprise fees or unneeded procedures.',
+            },
+          ],
     },
     {
       id: 'block-founder',
       type: 'founder-spotlight',
       enabled: true,
-      name: project.doctorOrOwnerName || 'Dr. Amit Sharma',
-      title: project.doctorOrOwnerTitle || 'Lead Implantologist & Dental Surgeon',
-      bio: `Dedicated to bringing world-class diagnostics and clinical transparency to ${city}. Every patient receives personalized, gentle care designed for long-term health and confident smiles.`,
+      name: project.doctorOrOwnerName || (isRoofing ? 'Marcus Vance' : 'Dr. Amit Sharma'),
+      title: project.doctorOrOwnerTitle || (isRoofing ? 'Master Certified Roofing Specialist' : 'Lead Implantologist & Dental Surgeon'),
+      bio: isRoofing
+        ? `Over 18 years leading commercial and residential roof restorations across ${city}. Built on relentless craftsmanship, transparent line-item estimates, and lasting structural integrity.`
+        : `Dedicated to bringing world-class diagnostics and clinical transparency to ${city}. Every patient receives personalized, gentle care designed for long-term health and confident smiles.`,
       imageUrl: founderImg,
     },
     {
@@ -183,29 +254,82 @@ export function generateDefaultBlocks(project: WebsiteProject, vault: NicheVault
       enabled: true,
       rating: project.rating || 4.9,
       reviewCount: project.reviewCount || 184,
-      reviews: [
-        {
-          author: 'Pooja Kulkarni',
-          roleOrLocation: city,
-          initials: 'PK',
-          quote:
-            'Completely painless root canal treatment. Dr. Sharma explained every step on the 3D scan before beginning.',
-        },
-        {
-          author: 'Vikram Mehta',
-          roleOrLocation: city,
-          initials: 'VM',
-          quote:
-            'Extremely transparent pricing with no hidden charges. The clinic feels like a premium private hospital.',
-        },
-        {
-          author: 'Sneha Patil',
-          roleOrLocation: city,
-          initials: 'SP',
-          quote:
-            'Zero waiting time. Was taken into the operatory right at my appointment slot. Highly recommended for families.',
-        },
-      ],
+      reviews: isRoofing
+        ? [
+            {
+              author: 'David Harrison',
+              roleOrLocation: city,
+              initials: 'DH',
+              quote:
+                'Had major hail damage. Their crew completed the entire tear-off and replacement in 2 days. The magnetic sweep left zero nails on my driveway.',
+            },
+            {
+              author: 'Sarah Jenkins',
+              roleOrLocation: city,
+              initials: 'SJ',
+              quote:
+                'Handled the insurance claim completely. The new Class 4 shingles lowered my homeowner insurance premium by 22%.',
+            },
+            {
+              author: 'Michael Torres',
+              roleOrLocation: city,
+              initials: 'MT',
+              quote:
+                'Extremely professional, punctual, and zero surprise charges. The best contractor experience I have had in years.',
+            },
+          ]
+        : [
+            {
+              author: 'Pooja Kulkarni',
+              roleOrLocation: city,
+              initials: 'PK',
+              quote:
+                'Completely painless root canal treatment. Dr. Sharma explained every step on the 3D scan before beginning.',
+            },
+            {
+              author: 'Vikram Mehta',
+              roleOrLocation: city,
+              initials: 'VM',
+              quote:
+                'Extremely transparent pricing with no hidden charges. The clinic feels like a premium private hospital.',
+            },
+            {
+              author: 'Sneha Patil',
+              roleOrLocation: city,
+              initials: 'SP',
+              quote:
+                'Zero waiting time. Was taken into the operatory right at my appointment slot. Highly recommended for families.',
+            },
+          ],
+    },
+    {
+      id: 'block-booking',
+      type: 'booking-intake',
+      enabled: true,
+      heading: isRoofing ? 'Fast-Track Roof Inspection & Quote' : 'Direct Clinical Booking & Inquiries',
+      subheading: isRoofing
+        ? `Schedule your comprehensive attic and roof assessment with ${bizName}. Same-week priority dispatch.`
+        : `Schedule your appointment directly with ${bizName}. Zero reception waiting times guaranteed.`,
+      procedures: isRoofing
+        ? [
+            'Class 4 Hail & Storm Inspection',
+            'Full Shingle Roof Replacement',
+            'Commercial Flat Roof (TPO/EPDM)',
+            'Emergency Leak Mitigation',
+            'Gutters & Valley Flashing',
+            'Free Drone Assessment',
+          ]
+        : [
+            'Single-Sitting Root Canal',
+            'Zirconia Ceramic Crowns',
+            'Laser Teeth Whitening',
+            'Computer-Guided Dental Implants',
+            'Clear Orthodontic Aligners',
+            'Comprehensive Consultation',
+          ],
+      businessName: bizName,
+      whatsappNumber: whatsapp,
+      phone,
     },
     {
       id: 'block-callbar',

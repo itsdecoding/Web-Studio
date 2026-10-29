@@ -10,10 +10,12 @@ export type BlockType =
   | 'nav'
   | 'hero'
   | 'philosophy-tilts'
+  | 'before-after'
   | 'services-rail'
   | 'trust-pillars'
   | 'founder-spotlight'
   | 'google-reviews'
+  | 'booking-intake'
   | 'sticky-callbar';
 
 export interface BaseBlock {
@@ -55,6 +57,19 @@ export interface PhilosophyTiltsBlock extends BaseBlock {
   statementHtml: string;
   tilt1ImageUrl: string;
   tilt2ImageUrl: string;
+}
+
+export interface BeforeAfterBlock extends BaseBlock {
+  type: 'before-after';
+  tagText?: string;
+  heading?: string;
+  subheading?: string;
+  beforeImage: string;
+  afterImage: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  caseDescription?: string;
+  ctaText?: string;
 }
 
 export interface ServiceCardData {
@@ -108,6 +123,17 @@ export interface GoogleReviewsBlock extends BaseBlock {
   reviews: ReviewItemData[];
 }
 
+export interface BookingIntakeBlock extends BaseBlock {
+  type: 'booking-intake';
+  heading?: string;
+  subheading?: string;
+  procedures: string[];
+  businessName: string;
+  whatsappNumber: string;
+  phone: string;
+  timingSlots?: string[];
+}
+
 export interface StickyCallbarBlock extends BaseBlock {
   type: 'sticky-callbar';
   phone: string;
@@ -120,10 +146,12 @@ export type WebsiteBlock =
   | NavBlock
   | HeroBlock
   | PhilosophyTiltsBlock
+  | BeforeAfterBlock
   | ServicesRailBlock
   | TrustPillarsBlock
   | FounderSpotlightBlock
   | GoogleReviewsBlock
+  | BookingIntakeBlock
   | StickyCallbarBlock;
 
 export interface BlockThemeTokens {
