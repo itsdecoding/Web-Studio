@@ -23,6 +23,7 @@ import {
   Building,
   ArrowRight,
   RefreshCw,
+  Download,
 } from 'lucide-react';
 
 interface ProjectSummary {
@@ -418,7 +419,7 @@ export default function StudioHomePage() {
                       </Link>
 
                       {/* Secondary Actions */}
-                      <div className="grid grid-cols-4 gap-1.5">
+                      <div className="grid grid-cols-5 gap-1.5">
                         <a
                           href={publicUrl}
                           target="_blank"
@@ -448,6 +449,15 @@ export default function StudioHomePage() {
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                         </button>
+
+                        <a
+                          href={`/api/studio/export?slug=${encodeURIComponent(proj.slug)}`}
+                          download={`${proj.slug}-index.html`}
+                          className="flex items-center justify-center p-2 rounded-lg bg-[#14171E] hover:bg-[#1B1F28] border border-[#222630] text-orange-400 hover:text-orange-300 text-xs transition-colors"
+                          title="Download Standalone Client index.html Package"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                        </a>
 
                         <button
                           onClick={() => handleDeleteProject(proj.id, proj.businessName)}

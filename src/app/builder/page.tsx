@@ -8,6 +8,7 @@ import { BuilderHeader } from '@/components/builder/BuilderHeader';
 import { ControlsSidebar } from '@/components/builder/ControlsSidebar';
 import { DeviceCanvas } from '@/components/builder/DeviceCanvas';
 import { PublishModal } from '@/components/builder/PublishModal';
+import { ExportModal } from '@/components/builder/ExportModal';
 
 const DEFAULT_PROJECT: WebsiteProject = {
   businessName: 'Perfect Smile Dental Clinic',
@@ -60,6 +61,7 @@ function BuilderWorkspace() {
   const [isSaving, setIsSaving] = useState(false);
   const [isAiDrafting, setIsAiDrafting] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   // Handle Gemini AI 1-Click Auto-Draft
   const handleAiAutoDraft = async () => {
@@ -210,6 +212,7 @@ function BuilderWorkspace() {
         onDeviceChange={setDevice}
         onSaveDraft={handleSaveDraft}
         onPublishLive={handlePublishLive}
+        onExport={() => setExportModalOpen(true)}
         onAiAutoDraft={handleAiAutoDraft}
         isSaving={isSaving}
         isAiDrafting={isAiDrafting}
@@ -238,6 +241,14 @@ function BuilderWorkspace() {
         businessName={project.businessName}
         slug={project.slug || 'perfect-smile'}
         phone={project.whatsappNumber || project.phone}
+      />
+
+      {/* Client Handoff & Export Modal */}
+      <ExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        project={project}
+        compiledHtml={compiled.html}
       />
     </div>
   );

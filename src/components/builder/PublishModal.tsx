@@ -9,6 +9,7 @@ import {
   X,
   Check,
   Sparkles,
+  Download,
 } from 'lucide-react';
 
 interface PublishModalProps {
@@ -96,13 +97,24 @@ export const PublishModal: React.FC<PublishModalProps> = ({
               <ExternalLink className="w-3 h-3 shrink-0" />
             </a>
 
-            <button
-              onClick={handleCopyLink}
-              className="px-3 py-1.5 rounded-lg bg-[#F95721] hover:bg-[#E04612] text-xs font-bold text-white flex items-center gap-1.5 shrink-0 shadow-sm transition-all"
-            >
-              {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleCopyLink}
+                className="px-3 py-1.5 rounded-lg bg-[#F95721] hover:bg-[#E04612] text-xs font-bold text-white flex items-center gap-1.5 shadow-sm transition-all"
+              >
+                {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
+              </button>
+
+              <a
+                href={`/api/studio/export?slug=${encodeURIComponent(slug)}`}
+                download={`${slug}-index.html`}
+                className="p-1.5 rounded-lg bg-[#1B1F28] hover:bg-[#262C38] border border-[#2B313F] text-slate-300 hover:text-white transition-colors"
+                title="Download Standalone Client index.html Package"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
         </div>
 

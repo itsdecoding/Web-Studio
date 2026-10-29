@@ -12,6 +12,7 @@ import {
   Edit2,
   Check,
   Sparkles,
+  Download,
 } from 'lucide-react';
 
 interface BuilderHeaderProps {
@@ -22,6 +23,7 @@ interface BuilderHeaderProps {
   onDeviceChange: (device: 'mobile' | 'tablet' | 'desktop') => void;
   onSaveDraft: () => void;
   onPublishLive: () => void;
+  onExport?: () => void;
   onAiAutoDraft?: () => void;
   isSaving?: boolean;
   isAiDrafting?: boolean;
@@ -35,6 +37,7 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
   onDeviceChange,
   onSaveDraft,
   onPublishLive,
+  onExport,
   onAiAutoDraft,
   isSaving,
   isAiDrafting,
@@ -170,6 +173,17 @@ export const BuilderHeader: React.FC<BuilderHeaderProps> = ({
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">{isAiDrafting ? 'AI Drafting...' : 'AI Auto-Draft'}</span>
+          </button>
+        )}
+
+        {onExport && (
+          <button
+            onClick={onExport}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#23262D] text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#181B20] transition-colors"
+            title="Download standalone client index.html package"
+          >
+            <Download className="w-3.5 h-3.5 text-orange-400" />
+            <span className="hidden sm:inline">Export</span>
           </button>
         )}
 
